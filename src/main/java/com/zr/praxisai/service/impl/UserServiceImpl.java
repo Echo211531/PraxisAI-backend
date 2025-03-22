@@ -42,8 +42,6 @@ import static com.zr.praxisai.constant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @Resource
-    private RedissonClient redissonClient;
     /**
      * 盐值，混淆密码
      */
@@ -225,6 +223,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return queryWrapper;
     }
 
+    @Resource
+    private RedissonClient redissonClient;
     /**
      * 添加用户签到记录
      * @param userId 用户 id
