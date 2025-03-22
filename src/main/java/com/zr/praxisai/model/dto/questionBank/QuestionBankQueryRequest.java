@@ -1,6 +1,6 @@
 package com.zr.praxisai.model.dto.questionBank;
 
-import com.mianshiya.common.PageRequest;
+import com.zr.praxisai.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

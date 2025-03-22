@@ -143,6 +143,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return currentUser;
     }
 
+    //获取当前登录用户（允许未登录）
+    @Override
+    public User getLoginUserPermitNull(HttpServletRequest request) {
+        // 先判断是否已登录（基于 Sa-Token 实现）
+        Object loginUserId = StpUtil.getLoginIdDefaultNull();
+        if (loginUserId == null) {
+            return null;
+        }
+        return this.getById((String) loginUserId);
+    }
+
     //是否为管理员(Sa-Token)
     @Override
     public boolean isAdmin(HttpServletRequest request) {

@@ -104,6 +104,14 @@ public interface UserService extends IService<User> {
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
     /**
+     * 获取当前登录用户（允许未登录）
+     *
+     * @param request
+     * @return
+     */
+    User getLoginUserPermitNull(HttpServletRequest request);
+
+    /**
      * 添加用户签到记录
      * @param userId 用户 id
      * @return 当前用户是否已签到成功
