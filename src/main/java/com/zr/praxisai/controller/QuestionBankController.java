@@ -4,6 +4,7 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.jd.platform.hotkey.client.callback.JdHotKeyStore;
 import com.zr.praxisai.common.BaseResponse;
 import com.zr.praxisai.common.DeleteRequest;
 import com.zr.praxisai.common.ErrorCode;
@@ -171,7 +172,7 @@ public class QuestionBankController {
         return ResultUtils.success(true);
     }
 
-    //根据 id 获取题库（封装类）接入hotKey
+    //根据 id 获取题库（封装类） 接入hotKey
     @GetMapping("/get/vo")
     public BaseResponse<QuestionBankVO> getQuestionBankVOById(QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
@@ -179,17 +180,19 @@ public class QuestionBankController {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
 
         // todo 取消注释开启 HotKey（须确保 HotKey 依赖被打进 jar 包）
-//        // 生成 key
-//        String key = "bank_detail_" + id;
-//        // 如果是热 key
-//        if (JdHotKeyStore.isHotKey(key)) {
-//            // 从本地缓存中获取缓存值
-//            Object cachedQuestionBankVO = JdHotKeyStore.get(key);
-//            if (cachedQuestionBankVO != null) {
-//                // 如果缓存中有值，直接返回缓存的值
-//                return ResultUtils.success((QuestionBankVO) cachedQuestionBankVO);
-//            }
-//        }
+        // 生成该题库的 key
+        String key = "bank_detail_" + id;
+        // 判断是否是是热 key，并且会将 key 上报到探测集群进行数量计算。
+        //通常用于判断只需要判断 key 是否过热、不需要缓存 value 的场景，如接口访问频率等。
+        if (JdHotKeyStore.isHotKey(key)) {
+            // 如果是热 key
+            // 则从本地缓存中获取该key的value缓存值
+            Object cachedQuestionBankVO = JdHotKeyStore.get(key);
+            if (cachedQuestionBankVO != null) {
+                // 如果缓存中有值，直接返回缓存的值
+                return ResultUtils.success((QuestionBankVO) cachedQuestionBankVO);
+            }
+        }
 
         // 查询数据库
         QuestionBank questionBank = questionBankService.getById(id);
@@ -210,8 +213,8 @@ public class QuestionBankController {
         }
 
         // todo 取消注释开启 HotKey（须确保 HotKey 依赖被打进 jar 包）
-//        // 设置本地缓存（如果不是热 key，这个方法不会设置缓存）
-//        JdHotKeyStore.smartSet(key, questionBankVO);
+        // 设置本地缓存（如果不是热 key，这个方法不会设置缓存）
+       JdHotKeyStore.smartSet(key, questionBankVO);
 
         // 获取封装类
         return ResultUtils.success(questionBankVO);
