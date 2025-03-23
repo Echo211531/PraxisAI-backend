@@ -236,6 +236,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
 
 
+
     //AI 生成题目,题目类型，比如 Java, 题目数量，比如 10, 创建人
     @Override
    public boolean aiGenerateQuestions(String questionType, int number, User user) {

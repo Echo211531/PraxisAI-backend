@@ -243,15 +243,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean addUserSignIn(long userId) {
-        LocalDate date = LocalDate.now();
+        LocalDate date = LocalDate.now();  //获取当前时间
+        //获取该用户的签到key
         String key = RedisConstant.getUserSignInRedisKey(date.getYear(), userId);
-        // 获取 Redis 的 BitMap
+        // 获取该用户对应的 BitMap
         RBitSet signInBitSet = redissonClient.getBitSet(key);
         // 获取当前日期是一年中的第几天，作为偏移量（从 1 开始计数）
         int offset = date.getDayOfYear();
-        // 查询当天有没有签到
+        // 查询如果当天有没有签到，则设置为签到
         if (!signInBitSet.get(offset)) {
-            // 如果当前未签到，则设置
             signInBitSet.set(offset, true);
         }
         // 当天已签到
@@ -267,18 +267,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public List<Integer> getUserSignInRecord(long userId, Integer year) {
-        if (year == null) {
-            LocalDate date = LocalDate.now();
+        if (year == null) {  // 如果年份为空，表示当前年份
+            LocalDate date = LocalDate.now(); // 获取当前日期
             year = date.getYear();
         }
+        //获取该用户的签到key
         String key = RedisConstant.getUserSignInRedisKey(year, userId);
         // 获取 Redis 的 BitMap
         RBitSet signInBitSet = redissonClient.getBitSet(key);
         // 加载 BitSet 到内存中，避免后续读取时发送多次请求
         BitSet bitSet = signInBitSet.asBitSet();
-        // 统计签到的日期
+        // 用list统计签到的日期
         List<Integer> dayList = new ArrayList<>();
-        // 从索引 0 开始查找下一个被设置为 1 的位
+        // 从索引 0 开始查找下一个被设置为 1 的位置
         int index = bitSet.nextSetBit(0);
         while (index >= 0) {
             dayList.add(index);
