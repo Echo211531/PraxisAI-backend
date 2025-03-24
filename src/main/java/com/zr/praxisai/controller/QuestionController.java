@@ -127,7 +127,7 @@ public class QuestionController {
     public BaseResponse<QuestionVO> getQuestionVOById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         // 检测和处置爬虫（可以自行扩展为 - 登录后才能获取到答案）
-        // 其实就是获取题目的时候获取登录用户，如果登录用户为空，则直接返回题目信息
+        // 获取题目时获取登录用户，如果登录用户为空，则直接返回题目信息
         // 否则，检测是否是爬虫，如果是爬虫，则直接返回错误
         User loginUser = userService.getLoginUserPermitNull(request);
         if (loginUser != null) {
@@ -155,7 +155,7 @@ public class QuestionController {
         // 统计一分钟内访问次数，180 秒过期
         long count = counterManager.incrAndGetCounter(key, 1, TimeUnit.MINUTES, 180);
         // 是否封号
-        if (count > BAN_COUNT) {
+        if (count > BAN_COUNT) { //次数>阈值
             // 踢下线
             StpUtil.kickout(loginUserId);
             // 封号
@@ -300,8 +300,6 @@ public class QuestionController {
         // 可以返回本地数据或空数据
         return ResultUtils.success(null);
     }
-
-
 
     // 搜索题目，取消注释开启ES
     @PostMapping("/search/page/vo")
