@@ -13,6 +13,7 @@ import com.zr.praxisai.constant.CommonConstant;
 import com.zr.praxisai.exception.BusinessException;
 import com.zr.praxisai.exception.ThrowUtils;
 import com.zr.praxisai.mapper.QuestionMapper;
+import com.zr.praxisai.model.dto.question.QuestionDynamicFields;
 import com.zr.praxisai.model.dto.question.QuestionEsDTO;
 import com.zr.praxisai.model.dto.question.QuestionQueryRequest;
 import com.zr.praxisai.model.entity.Question;
@@ -44,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -230,12 +232,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
     }
 
-
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
-    //从 ES 查询题目
+    //从 ES 查询题目(静态数据)
     @Override
-    public Page<Question> searchFromEs(QuestionQueryRequest questionQueryRequest) {
+    public Page<Question> searchFromEsStatic(QuestionQueryRequest questionQueryRequest) {
         // 获取参数
         Long id = questionQueryRequest.getId();
         Long notId = questionQueryRequest.getNotId();  //排除指定 ID 的题目
@@ -318,6 +319,37 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         page.setRecords(resourceList); //将查询结果和总记录数封装到 Page 对象中并返回
         return page;
+    }
+    @Resource
+    private QuestionMapper questionMapper;
+    //从 ES 查询题目(动静分离)
+    @Override
+    public Page<Question> searchFromEs(QuestionQueryRequest questionQueryRequest){
+        // 1. 调用ES查询获取静态数据
+        Page<Question> esPage = this.searchFromEsStatic(questionQueryRequest);
+        // 2. 提取所有题目ID
+        List<Long> ids = esPage.getRecords().stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        // 3. 批量查询数据库获取动态字段
+        List<QuestionDynamicFields> dynamicList = questionMapper.selectDynamicFieldsByIds(ids);
+
+        // 4. 转换为 Map<Long, QuestionDynamicFields>
+        Map<Long, QuestionDynamicFields> dynamicData = dynamicList.stream()
+                .collect(Collectors.toMap(
+                        QuestionDynamicFields::getId,  // 键：id
+                        Function.identity()            // 值：整个对象
+                ));
+
+        // 5. 合并ES的静态数据和MySQL的动态数据
+        esPage.getRecords().forEach(question -> {
+            QuestionDynamicFields dynamic = dynamicData.get(question.getId());
+            if (dynamic != null) {
+                question.setUpdateTime(dynamic.getUpdateTime());
+                // 其他动态字段...以后扩展
+            }
+        });
+        return esPage;
     }
 
     //    @Resource

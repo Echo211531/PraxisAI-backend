@@ -313,7 +313,7 @@ public class QuestionController {
         // todo 取消注释开启 ES（须先配置 ES）
         Page<Question> questionPage;
         try {
-            // 优先查询ES
+            // 优先查询ES(动静分离策略)
             questionPage = questionService.searchFromEs(questionQueryRequest);
         } catch (ElasticsearchException e) {
             // 查询数据库（作为没有 ES 的降级方案）

@@ -23,24 +23,25 @@ public class QuestionEsDTO implements Serializable {
     //id
     @Id
     private Long id;
-    //标题
+    //静态字段:题目标题
     private String title;
-    //内容
+    //静态字段：题目内容
     private String content;
-    //答案
+    //静态字段：答案
     private String answer;
-    //标签列表
+    //静态字段：标签列表
     private List<String> tags;
     //创建用户 id
     private Long userId;
+    //所属题库 id
+    private Long questionBankId;
     //创建时间
     @Field(type = FieldType.Date, format = {}, pattern = DATE_TIME_PATTERN)
     private Date createTime;
-    //更新时间
-    @Field(type = FieldType.Date, format = {}, pattern = DATE_TIME_PATTERN)
-    private Date updateTime;
     //是否删除
     private Integer isDelete;
+
+    //移除动态字段...
 
     private static final long serialVersionUID = 1L;
 
