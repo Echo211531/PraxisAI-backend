@@ -3,6 +3,7 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import com.alibaba.csp.sentinel.Entry;
 import com.alibaba.csp.sentinel.EntryType;
 import com.alibaba.csp.sentinel.SphU;
@@ -310,10 +311,20 @@ public class QuestionController {
         // 限制爬虫
         ThrowUtils.throwIf(size > 200, ErrorCode.PARAMS_ERROR);
         // todo 取消注释开启 ES（须先配置 ES）
-        // 查询 ES
-        // Page<Question> questionPage = questionService.searchFromEs(questionQueryRequest);
-        // 查询数据库（作为没有 ES 的降级方案）
-        Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
+        Page<Question> questionPage;
+        try {
+            // 优先查询ES
+            questionPage = questionService.searchFromEs(questionQueryRequest);
+        } catch (ElasticsearchException e) {
+            // 查询数据库（作为没有 ES 的降级方案）
+            log.error("ES查询失败，降级到数据库查询", e);
+            questionPage = questionService.listQuestionByPage(questionQueryRequest);
+        } catch (Exception e) {
+            // 其他未知异常直接抛出
+            log.error("搜索接口发生未知异常", e);
+            throw e;
+        }
+        //返回数据给前端
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 

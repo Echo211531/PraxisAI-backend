@@ -238,21 +238,22 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     public Page<Question> searchFromEs(QuestionQueryRequest questionQueryRequest) {
         // 获取参数
         Long id = questionQueryRequest.getId();
-        Long notId = questionQueryRequest.getNotId();
-        String searchText = questionQueryRequest.getSearchText();
-        List<String> tags = questionQueryRequest.getTags();
-        Long questionBankId = questionQueryRequest.getQuestionBankId();
-        Long userId = questionQueryRequest.getUserId();
+        Long notId = questionQueryRequest.getNotId();  //排除指定 ID 的题目
+        String searchText = questionQueryRequest.getSearchText(); //搜索词
+        List<String> tags = questionQueryRequest.getTags();  //标签列表
+        Long questionBankId = questionQueryRequest.getQuestionBankId(); //题库id
+        Long userId = questionQueryRequest.getUserId(); //用户id
         // 注意，ES 的起始页为 0
         int current = questionQueryRequest.getCurrent() - 1;
-        int pageSize = questionQueryRequest.getPageSize();
+        int pageSize = questionQueryRequest.getPageSize();   //展示页题目数
         String sortField = questionQueryRequest.getSortField();
         String sortOrder = questionQueryRequest.getSortOrder();
 
-        // 构造查询条件
+        // 构建布尔查询条件（AND/OR/NOT 组合）
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        // 过滤
+        // 过滤，查询未删除的题目
         boolQueryBuilder.filter(QueryBuilders.termQuery("isDelete", 0));
+        //其他过滤条件，动态传入
         if (id != null) {
             boolQueryBuilder.filter(QueryBuilders.termQuery("id", id));
         }
@@ -265,7 +266,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (questionBankId != null) {
             boolQueryBuilder.filter(QueryBuilders.termQuery("questionBankId", questionBankId));
         }
-        // 必须包含所有标签
+        // 精确匹配，必须包含所有标签
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
                 boolQueryBuilder.filter(QueryBuilders.termQuery("tags", tag));
@@ -274,37 +275,48 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 按关键词检索
         if (StringUtils.isNotBlank(searchText)) {
             // title = '' or content = '' or answer = ''
+            //按关键词检索(建立倒排索引定位文档)
             boolQueryBuilder.should(QueryBuilders.matchQuery("title", searchText));
             boolQueryBuilder.should(QueryBuilders.matchQuery("content", searchText));
             boolQueryBuilder.should(QueryBuilders.matchQuery("answer", searchText));
-            boolQueryBuilder.minimumShouldMatch(1);
+            boolQueryBuilder.minimumShouldMatch(1);  //至少有一个条件匹配即可,即or
         }
-        // 排序
+        // 默认按相关性评分（score）排序
         SortBuilder<?> sortBuilder = SortBuilders.scoreSort();
         if (StringUtils.isNotBlank(sortField)) {
+            //如果指定了 sortField，则按该字段排序
             sortBuilder = SortBuilders.fieldSort(sortField);
+            //排序顺序由 sortOrder 决定（升序或降序）
             sortBuilder.order(CommonConstant.SORT_ORDER_ASC.equals(sortOrder) ? SortOrder.ASC : SortOrder.DESC);
         }
-        // 分页
+
+        // 分页，使用 PageRequest 构造分页参数
         PageRequest pageRequest = PageRequest.of(current, pageSize);
-        // 构造查询
+
+        // 构造查询，包含查询条件、分页参数和排序规则，传入ES
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
                 .withPageable(pageRequest)
                 .withSorts(sortBuilder)
                 .build();
+        //根据查询条件从ES中查出对应题目，包含查询结果和元信息（如总命中数）
         SearchHits<QuestionEsDTO> searchHits = elasticsearchRestTemplate.search(searchQuery, QuestionEsDTO.class);
+
         // 复用 MySQL / MyBatis Plus 的分页对象，封装返回结果
         Page<Question> page = new Page<>();
-        page.setTotal(searchHits.getTotalHits());
+        page.setTotal(searchHits.getTotalHits());  //获取总命中数
         List<Question> resourceList = new ArrayList<>();
-        if (searchHits.hasSearchHits()) {
+
+        if (searchHits.hasSearchHits()) {  //如果查询结果不为空
+            //获取查询结果列表
+            //SearchHit 是 Elasticsearch 的查询结果单元，包含了文档的内容、元信息（如 ID、评分等）
             List<SearchHit<QuestionEsDTO>> searchHitList = searchHits.getSearchHits();
             for (SearchHit<QuestionEsDTO> questionEsDTOSearchHit : searchHitList) {
+                //遍历取出实际文档内容QuestionEsDTO，转成实际对象Question，加入到列表中
                 resourceList.add(QuestionEsDTO.dtoToObj(questionEsDTOSearchHit.getContent()));
             }
         }
-        page.setRecords(resourceList);
+        page.setRecords(resourceList); //将查询结果和总记录数封装到 Page 对象中并返回
         return page;
     }
 

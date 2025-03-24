@@ -177,7 +177,7 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         return questionBankQuestionVOPage;
     }
 
-    //批量添加题目到题库
+    //todo 批量添加题目到题库
     @Override
     public void batchAddQuestionsToBank(List<Long> questionIdList, long questionBankId, User loginUser) {
         // 参数校验
@@ -251,7 +251,7 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         customExecutor.shutdown();
     }
 
-    //批量添加题目到题库（事务，仅供内部调用）
+    //todo 批量添加题目到题库（事务，仅供内部调用）
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchAddQuestionsToBankInner(List<QuestionBankQuestion> questionBankQuestions) {
@@ -271,7 +271,7 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         }
     }
 
-    //批量从题库移除题目
+    //todo 批量从题库移除题目
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchRemoveQuestionsFromBank(List<Long> questionIdList, long questionBankId) {
