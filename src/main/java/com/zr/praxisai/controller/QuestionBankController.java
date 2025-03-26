@@ -22,6 +22,7 @@ import com.zr.praxisai.model.entity.QuestionBank;
 import com.zr.praxisai.model.entity.User;
 import com.zr.praxisai.model.vo.QuestionBankVO;
 import com.zr.praxisai.model.vo.QuestionVO;
+import com.zr.praxisai.sentinel.SentinelConstant;
 import com.zr.praxisai.service.QuestionBankService;
 import com.zr.praxisai.service.QuestionService;
 import com.zr.praxisai.service.UserService;
@@ -145,6 +146,7 @@ public class QuestionBankController {
         // 获取封装类
         return ResultUtils.success(questionBankService.getQuestionBankVOPage(questionBankPage, request));
     }
+
     //编辑题库（给用户使用）
     @PostMapping("/edit")
     @SaCheckRole(UserConstant.ADMIN_ROLE)
@@ -214,14 +216,14 @@ public class QuestionBankController {
 
         // todo 取消注释开启 HotKey（须确保 HotKey 依赖被打进 jar 包）
         // 设置本地缓存（如果不是热 key，这个方法不会设置缓存）
-       JdHotKeyStore.smartSet(key, questionBankVO);
+        JdHotKeyStore.smartSet(key, questionBankVO);
 
         // 获取封装类
         return ResultUtils.success(questionBankVO);
     }
 
-    //分页获取题库列表（封装类） 使用sentinel限流
-    //分页获取题库列表（封装类） 使用sentinel限流
+
+//    //分页获取题库列表（封装类） 使用sentinel限流
 //    @PostMapping("/list/page/vo")
 //    @SentinelResource(value = SentinelConstant.listQuestionBankVOByPage,
 //            blockHandler = "handleBlockException",
@@ -238,30 +240,24 @@ public class QuestionBankController {
 //        // 获取封装类
 //        return ResultUtils.success(questionBankService.getQuestionBankVOPage(questionBankPage, request));
 //    }
-
-    /**
-     * listQuestionBankVOByPage 流控操作（此处为了方便演示，写在同一个类中）
-     * 限流：提示“系统压力过大，请耐心等待”
-     * 熔断：执行降级操作
-     */
+//
+//    //限流降级处理
 //    public BaseResponse<Page<QuestionBankVO>> handleBlockException(@RequestBody QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request, BlockException ex) {
 //        // 降级操作
 //        if (ex instanceof DegradeException) {
 //            return handleFallback(questionBankQueryRequest, request, ex);
 //        }
 //        // 限流操作
-//        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统压力过大，请耐心等待");
+//        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, null,"系统压力过大，请耐心等待");
 //    }
-
-    /**
-     * listQuestionBankVOByPage 降级操作：直接返回本地数据（此处为了方便演示，写在同一个类中）
-     */
-    public BaseResponse<Page<QuestionBankVO>> handleFallback(@RequestBody QuestionBankQueryRequest questionBankQueryRequest,
-                                                             HttpServletRequest request, Throwable ex) {
-        // 可以返回本地数据或空数据
-        return ResultUtils.success(null);
-    }
-
-
-    // endregion
+//
+//    //降级处理
+//    public BaseResponse<Page<QuestionBankVO>> handleFallback(@RequestBody QuestionBankQueryRequest questionBankQueryRequest,
+//                                                             HttpServletRequest request, Throwable ex) {
+//        // 可以返回本地数据或空数据
+//        return ResultUtils.success(null);
+//    }
+//
+//
+//    // endregion
 }

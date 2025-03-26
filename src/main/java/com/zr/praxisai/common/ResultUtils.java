@@ -1,5 +1,9 @@
 package com.zr.praxisai.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.zr.praxisai.model.vo.QuestionBankVO;
+import org.apache.poi.ss.formula.functions.T;
+
 /**
  * 返回工具类
  *
@@ -20,6 +24,10 @@ public class ResultUtils {
     }
     //失败3								//错误码
     public static BaseResponse<?> error(ErrorCode errorCode, String message) {
+        return new BaseResponse<>(errorCode.getCode(), null, message);
+    }
+
+    public static BaseResponse<Page<QuestionBankVO>> error(ErrorCode errorCode, Object o, String message) {
         return new BaseResponse<>(errorCode.getCode(), null, message);
     }
 }

@@ -58,7 +58,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private UserService userService;
-
     @Resource
     private QuestionBankQuestionService questionBankQuestionService;
 

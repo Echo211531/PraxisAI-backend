@@ -23,6 +23,7 @@ import com.zr.praxisai.model.dto.question.*;
 import com.zr.praxisai.model.entity.Question;
 import com.zr.praxisai.model.entity.User;
 import com.zr.praxisai.model.vo.QuestionVO;
+import com.zr.praxisai.sentinel.SentinelConstant;
 import com.zr.praxisai.service.QuestionService;
 import com.zr.praxisai.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -256,8 +257,8 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
-    //分页获取题目列表（封装类 - 限流版）
-    //分页获取题目列表（封装类 - 限流版）
+//
+//    //分页获取题目列表（封装类 - 限流版）
 //    @PostMapping("/list/page/vo/sentinel")
 //    public BaseResponse<Page<QuestionVO>> listQuestionVOByPageSentinel(@RequestBody QuestionQueryRequest questionQueryRequest,
 //                                                                       HttpServletRequest request) {
@@ -269,6 +270,8 @@ public class QuestionController {
 //        String remoteAddr = request.getRemoteAddr();
 //        Entry entry = null;
 //        try {
+//            //SphU.entry表示当前请求进入一个受保护的资源，记录该资源的访问次数、QPS（每秒查询数）、并发线程数等指标
+//            //如果资源的访问量超过了预设的限流或降级规则，SphU.entry(...) 会抛出异常
 //            entry = SphU.entry(SentinelConstant.listQuestionVOByPage, EntryType.IN, 1, remoteAddr);
 //            // 被保护的业务逻辑
 //            // 查询数据库
@@ -276,30 +279,29 @@ public class QuestionController {
 //            // 获取封装类
 //            return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
 //        } catch (Throwable ex) {
-//            // 业务异常
+//            // 如果是业务异常，则返回自定义的错误信息
 //            if (!BlockException.isBlockException(ex)) {
 //                Tracer.trace(ex);
-//                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统错误");
+//                return ResultUtils.error(ErrorCode.SYSTEM_ERROR,null, "系统错误");
 //            }
-//            // 降级操作
+//            // 如果是降级异常，则调用降级方法
 //            if (ex instanceof DegradeException) {
 //                return handleFallback(questionQueryRequest, request, ex);
 //            }
-//            // 限流操作
-//            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "访问过于频繁，请稍后再试");
+//            // 如果是限流异常，返回“访问过于频繁，请稍后再试”的提示
+//            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, null,"访问过于频繁，请稍后再试");
 //        } finally {
-//            if (entry != null) {
+//            if (entry != null) {  //确保资源被正确释放
 //                entry.exit(1, remoteAddr);
 //            }
 //        }
 //    }
-
-    //listQuestionVOByPageSentinel 降级操作：直接返回本地数据（此处为了方便演示，写在同一个类中）
-    public BaseResponse<Page<QuestionVO>> handleFallback(@RequestBody QuestionQueryRequest questionQueryRequest,
-                                                         HttpServletRequest request, Throwable ex) {
-        // 可以返回本地数据或空数据
-        return ResultUtils.success(null);
-    }
+//
+//    //降级操作
+//    public BaseResponse<Page<QuestionVO>> handleFallback(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request, Throwable ex) {
+//        // 可以返回本地数据或空数据
+//        return ResultUtils.success(null);
+//    }
 
     // 搜索题目，取消注释开启ES
     @PostMapping("/search/page/vo")
