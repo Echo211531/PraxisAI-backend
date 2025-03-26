@@ -11,6 +11,7 @@ import com.alibaba.csp.sentinel.Tracer;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.zr.praxisai.annotation.LimitCheck;
 import com.zr.praxisai.common.BaseResponse;
 import com.zr.praxisai.common.DeleteRequest;
 import com.zr.praxisai.common.ErrorCode;
@@ -125,15 +126,10 @@ public class QuestionController {
 
     //根据 id 获取题目（封装类）
     @GetMapping("/get/vo")
+    // 检测和处置爬虫（可以自行扩展为 - 登录后才能获取到答案）
+    @LimitCheck
     public BaseResponse<QuestionVO> getQuestionVOById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        // 检测和处置爬虫（可以自行扩展为 - 登录后才能获取到答案）
-        // 获取题目时获取登录用户，如果登录用户为空，则直接返回题目信息
-        // 否则，检测是否是爬虫，如果是爬虫，则直接返回错误
-        User loginUser = userService.getLoginUserPermitNull(request);
-        if (loginUser != null) {
-            crawlerDetect(loginUser.getId());  //检测爬虫
-        }
         // 友情提示，对于敏感的内容，可以再打印一些日志，记录用户访问的内容
         // 查询数据库
         Question question = questionService.getById(id);
