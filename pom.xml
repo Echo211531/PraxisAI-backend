@@ -49,7 +49,8 @@
         <dependency>
             <groupId>com.volcengine</groupId>
             <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
-            <version>LATEST</version>
+            <!-- 替换LATEST为 SDK 最新版本号：https://central.sonatype.com/artifact/com.volcengine/volcengine-java-sdk-ark-runtime -->
+            <version>0.1.157</version>
         </dependency>
         <!-- druid -->
         <dependency>
