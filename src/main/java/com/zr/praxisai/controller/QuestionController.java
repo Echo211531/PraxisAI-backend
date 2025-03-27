@@ -138,36 +138,6 @@ public class QuestionController {
         return ResultUtils.success(questionService.getQuestionVO(question, request));
     }
 
-    // 仅是为了方便，才把这段代码写到这里
-    @Resource
-    private CounterManager counterManager;
-    //检测loginUserId的爬虫
-    private void crawlerDetect(long loginUserId) {
-        // 调用多少次时告警
-        final int WARN_COUNT = 10;
-        // 调用多少次时封号
-        final int BAN_COUNT = 20;
-        // 拼接访问 key
-        String key = String.format("user:access:%s", loginUserId);
-        // 统计一分钟内访问次数，180 秒过期
-        long count = counterManager.incrAndGetCounter(key, 1, TimeUnit.MINUTES, 180);
-        // 是否封号
-        if (count > BAN_COUNT) { //次数>阈值
-            // 踢下线
-            StpUtil.kickout(loginUserId);
-            // 封号
-            User updateUser = new User();
-            updateUser.setId(loginUserId);
-            updateUser.setUserRole("ban");
-            userService.updateById(updateUser);
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "访问次数过多，已被封号");
-        }
-        // 是否告警
-        if (count == WARN_COUNT) {
-            // 可以改为向管理员发送邮件通知
-            throw new BusinessException(110, "警告：访问太频繁");
-        }
-    }
 
     //分页获取题目列表（仅管理员可用）
     @PostMapping("/list/page")
