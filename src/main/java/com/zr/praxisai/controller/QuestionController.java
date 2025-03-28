@@ -295,21 +295,20 @@ public class QuestionController {
     }
 
     //AI 生成题目（仅管理员可用）
-    //AI 生成题目（仅管理员可用）
-//    @PostMapping("/ai/generate/question")
-//    @SaCheckRole(UserConstant.ADMIN_ROLE)
-//    public BaseResponse<Boolean> aiGenerateQuestions(@RequestBody QuestionAIGenerateRequest questionAIGenerateRequest, HttpServletRequest request) {
-//        String questionType = questionAIGenerateRequest.getQuestionType();
-//        int number = questionAIGenerateRequest.getNumber();
-//        // 校验参数
-//        ThrowUtils.throwIf(StrUtil.isBlank(questionType), ErrorCode.PARAMS_ERROR, "题目类型不能为空");
-//        ThrowUtils.throwIf(number <= 0, ErrorCode.PARAMS_ERROR, "题目数量必须大于 0");
-//        // 获取当前登录用户
-//        User loginUser = userService.getLoginUser(request);
-//        // 调用 AI 生成题目服务
-//        questionService.aiGenerateQuestions(questionType, number, loginUser);
-//        // 返回结果
-//        return ResultUtils.success(true);
-//    }
+    @PostMapping("/ai/generate/question")
+    @SaCheckRole(UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> aiGenerateQuestions(@RequestBody QuestionAIGenerateRequest questionAIGenerateRequest, HttpServletRequest request) {
+        String questionType = questionAIGenerateRequest.getQuestionType();
+        int number = questionAIGenerateRequest.getNumber();
+        // 校验参数
+        ThrowUtils.throwIf(StrUtil.isBlank(questionType), ErrorCode.PARAMS_ERROR, "题目类型不能为空");
+        ThrowUtils.throwIf(number <= 0, ErrorCode.PARAMS_ERROR, "题目数量必须大于 0");
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 调用 AI 生成题目服务
+        questionService.aiGenerateQuestions(questionType, number, loginUser);
+        // 返回结果
+        return ResultUtils.success(true);
+    }
 
 }
